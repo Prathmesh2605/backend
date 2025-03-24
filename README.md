@@ -21,6 +21,8 @@ A full-stack expense tracking application built with .NET 8 and Angular 17.
 - File attachments for receipts
 - Reporting and visualization
 - Export capabilities
+- Budget planning and tracking
+- Recurring expenses
 
 ## Prerequisites
 
@@ -65,3 +67,37 @@ A full-stack expense tracking application built with .NET 8 and Angular 17.
   - NGRX for state management
   - Chart.js for visualizations
   - Angular Reactive Forms
+
+## API Documentation
+
+The API documentation is available through Swagger UI when running the application in development mode.
+- Access the Swagger UI at: `https://localhost:5001/swagger`
+- API endpoints are versioned (v1)
+- Authentication is required for most endpoints
+
+## Deployment
+
+### Backend Deployment
+1. Publish the API:
+   ```bash
+   dotnet publish -c Release -o ./publish
+   ```
+2. Deploy to your hosting environment (Azure App Service, IIS, Docker, etc.)
+3. Configure environment variables for production settings
+
+### Frontend Deployment
+1. Build the Angular application:
+   ```bash
+   ng build --prod
+   ```
+2. Deploy the contents of the `dist` folder to your web server
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Submit a pull request
+
+## License
+
+This project is licensed under the MIT License
