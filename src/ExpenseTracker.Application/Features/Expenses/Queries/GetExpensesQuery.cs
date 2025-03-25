@@ -20,19 +20,36 @@ public class GetExpensesQueryHandler : IRequestHandler<GetExpensesQuery, Result<
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
+    private readonly ICurrentUserService _currentUserService;
 
-    public GetExpensesQueryHandler(IUnitOfWork unitOfWork, IMapper mapper)
+    public GetExpensesQueryHandler(IUnitOfWork unitOfWork, IMapper mapper, ICurrentUserService currentUserService)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
+        _currentUserService = currentUserService;
     }
 
     public async Task<Result<PaginatedList<ExpenseDto>>> Handle(GetExpensesQuery request, CancellationToken cancellationToken)
     {
+        // Ensure user is authenticated
+        if (!_currentUserService.IsAuthenticated || string.IsNullOrEmpty(_currentUserService.UserId))
+        {
+            return Result<PaginatedList<ExpenseDto>>.Failure("User not authenticated");
+        }
+
+        // Parse the user ID to Guid
+        if (!Guid.TryParse(_currentUserService.UserId, out Guid userId))
+        {
+            return Result<PaginatedList<ExpenseDto>>.Failure("Invalid user ID");
+        }
+
         var query = _unitOfWork.Repository<Expense>().GetAll()
             .Include(e => e.Category)
             .Include(e => e.Receipt)
             .AsQueryable();
+
+        // Filter by current user
+        query = query.Where(e => e.UserId == userId);
 
         // Apply filters
         if (!string.IsNullOrWhiteSpace(request.SearchTerm))
