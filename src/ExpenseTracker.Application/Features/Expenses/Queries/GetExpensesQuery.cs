@@ -14,7 +14,11 @@ public record GetExpensesQuery(
     string? SearchTerm = null,
     DateTime? StartDate = null,
     DateTime? EndDate = null,
-    Guid? CategoryId = null) : IRequest<Result<PaginatedList<ExpenseDto>>>;
+    decimal? MinAmount = null,
+    decimal? MaxAmount = null,
+    string? SortBy = null,
+    string? SortDirection = null,
+    List<Guid>? CategoryIds = null) : IRequest<Result<PaginatedList<ExpenseDto>>>;
 
 public class GetExpensesQueryHandler : IRequestHandler<GetExpensesQuery, Result<PaginatedList<ExpenseDto>>>
 {
@@ -69,13 +73,35 @@ public class GetExpensesQueryHandler : IRequestHandler<GetExpensesQuery, Result<
             query = query.Where(e => e.Date <= request.EndDate.Value);
         }
 
-        if (request.CategoryId.HasValue)
+        if (request.CategoryIds != null && request.CategoryIds.Any())
         {
-            query = query.Where(e => e.CategoryId == request.CategoryId.Value);
+            query = query.Where(e => request.CategoryIds.Contains(e.CategoryId));
         }
 
-        // Order by date descending
-        query = query.OrderByDescending(e => e.Date);
+        if(request.MinAmount != null)
+        {
+            query = query.Where(x => x.Amount >= request.MinAmount);
+        }
+
+        if (request.MaxAmount != null)
+        {
+            query = query.Where(x => x.Amount <= request.MaxAmount);
+        }
+
+        // Apply sorting
+        if (!string.IsNullOrEmpty(request.SortBy))
+        {
+            // Default sort direction is ascending
+            var isAscending = string.IsNullOrEmpty(request.SortDirection) || 
+                              request.SortDirection.Equals("asc", StringComparison.OrdinalIgnoreCase);
+
+            query = ApplySorting(query, request.SortBy, isAscending);
+        }
+        else
+        {
+            // Default sorting by date descending
+            query = query.OrderByDescending(e => e.Date);
+        }
 
         // Get total count
         var totalCount = await query.CountAsync(cancellationToken);
@@ -97,5 +123,18 @@ public class GetExpensesQueryHandler : IRequestHandler<GetExpensesQuery, Result<
             request.PageSize);
 
         return Result<PaginatedList<ExpenseDto>>.Success(paginatedList);
+    }
+
+    private IQueryable<Expense> ApplySorting(IQueryable<Expense> query, string sortBy, bool isAscending)
+    {
+        return sortBy.ToLower() switch
+        {
+            "date" => isAscending ? query.OrderBy(e => e.Date) : query.OrderByDescending(e => e.Date),
+            "amount" => isAscending ? query.OrderBy(e => e.Amount) : query.OrderByDescending(e => e.Amount),
+            "description" => isAscending ? query.OrderBy(e => e.Description) : query.OrderByDescending(e => e.Description),
+            "category" => isAscending ? query.OrderBy(e => e.Category.Name) : query.OrderByDescending(e => e.Category.Name),
+            "createdat" => isAscending ? query.OrderBy(e => e.CreatedAt) : query.OrderByDescending(e => e.CreatedAt),
+            _ => query.OrderByDescending(e => e.Date) // Default sort
+        };
     }
 }

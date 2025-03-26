@@ -10,18 +10,11 @@ namespace ExpenseTracker.API.Controllers;
 [Authorize]
 public class ExpensesController : ApiControllerBase
 {
-    [HttpGet]
+    [HttpPost]
     [ProducesResponseType(typeof(PaginatedList<ExpenseDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(string), StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> GetExpenses(
-        [FromQuery] int pageNumber = 1,
-        [FromQuery] int pageSize = 10,
-        [FromQuery] string? searchTerm = null,
-        [FromQuery] DateTime? startDate = null,
-        [FromQuery] DateTime? endDate = null,
-        [FromQuery] Guid? categoryId = null)
+    public async Task<IActionResult> GetExpenses([FromBody] GetExpensesQuery query)
     {
-        var query = new GetExpensesQuery(pageNumber, pageSize, searchTerm, startDate, endDate, categoryId);
         var result = await Mediator.Send(query);
         return result.Succeeded ? Ok(result.Data) : BadRequest(result.Error);
     }
@@ -37,7 +30,7 @@ public class ExpensesController : ApiControllerBase
         return result.Succeeded ? Ok(result.Data) : NotFound(result.Error);
     }
 
-    [HttpPost]
+    [HttpPost("create")]
     [ProducesResponseType(typeof(ExpenseDto), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(string), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CreateExpense([FromForm] CreateExpenseCommand command)
