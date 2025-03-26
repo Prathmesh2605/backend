@@ -29,22 +29,22 @@ public class CreateExpenseCommandValidator : AbstractValidator<CreateExpenseComm
         RuleFor(x => x.CategoryId)
             .NotEmpty();
 
-        When(x => x.IsRecurring, () =>
-        {
-            RuleFor(x => x.RecurrencePattern)
-                .NotEmpty()
-                .WithMessage("Recurrence pattern is required for recurring expenses");
-        });
+        //When(x => x.IsRecurring, () =>
+        //{
+        //    RuleFor(x => x.RecurrencePattern)
+        //        .NotEmpty()
+        //        .WithMessage("Recurrence pattern is required for recurring expenses");
+        //});
 
-        When(x => x.Receipt != null, () =>
-        {
-            RuleFor(x => x.Receipt!.Length)
-                .LessThanOrEqualTo(10 * 1024 * 1024)
-                .WithMessage("Receipt file size must not exceed 10MB");
+        //When(x => x.Receipt != null, () =>
+        //{
+        //    RuleFor(x => x.Receipt!.Length)
+        //        .LessThanOrEqualTo(10 * 1024 * 1024)
+        //        .WithMessage("Receipt file size must not exceed 10MB");
 
-            RuleFor(x => x.Receipt!.ContentType)
-                .Must(x => x.StartsWith("image/") || x == "application/pdf")
-                .WithMessage("Receipt must be an image or PDF file");
-        });
+        //    RuleFor(x => x.Receipt!.ContentType)
+        //        .Must(x => x.StartsWith("image/") || x == "application/pdf")
+        //        .WithMessage("Receipt must be an image or PDF file");
+        //});
     }
 }

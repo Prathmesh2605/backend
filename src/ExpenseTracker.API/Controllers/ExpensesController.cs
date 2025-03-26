@@ -33,7 +33,7 @@ public class ExpensesController : ApiControllerBase
     [HttpPost("create")]
     [ProducesResponseType(typeof(ExpenseDto), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(string), StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> CreateExpense([FromForm] CreateExpenseCommand command)
+    public async Task<IActionResult> CreateExpense([FromBody] CreateExpenseCommand command)
     {
         var result = await Mediator.Send(command);
         return result.Succeeded
@@ -45,7 +45,7 @@ public class ExpensesController : ApiControllerBase
     [ProducesResponseType(typeof(ExpenseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(string), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> UpdateExpense(Guid id, [FromForm] UpdateExpenseCommand command)
+    public async Task<IActionResult> UpdateExpense(Guid id, [FromBody] UpdateExpenseCommand command)
     {
         if (id != command.Id)
         {

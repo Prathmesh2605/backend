@@ -5,7 +5,6 @@ using ExpenseTracker.Core.Entities;
 using ExpenseTracker.Core.Enums;
 using ExpenseTracker.Core.Interfaces;
 using MediatR;
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 
 namespace ExpenseTracker.Application.Features.Expenses.Commands;
@@ -21,7 +20,7 @@ public record UpdateExpenseCommand(
     string? Notes,
     bool IsRecurring,
     string? RecurrencePattern,
-    IFormFile? Receipt) : IRequest<Result<ExpenseDto>>;
+    string? ReceiptPath) : IRequest<Result<ExpenseDto>>;
 
 public class UpdateExpenseCommandHandler : IRequestHandler<UpdateExpenseCommand, Result<ExpenseDto>>
 {
@@ -74,7 +73,7 @@ public class UpdateExpenseCommandHandler : IRequestHandler<UpdateExpenseCommand,
         expense.RecurrencePattern = request.RecurrencePattern;
 
         // Handle receipt update if present
-        if (request.Receipt != null)
+        if (request.ReceiptPath != null)
         {
             // Delete old receipt if exists
             if (expense.Receipt != null)
@@ -82,21 +81,12 @@ public class UpdateExpenseCommandHandler : IRequestHandler<UpdateExpenseCommand,
                 await _fileStorage.DeleteFileAsync(expense.Receipt.FileName);
             }
 
-            // Upload new receipt
-            using var stream = request.Receipt.OpenReadStream();
-            var fileName = await _fileStorage.SaveFileAsync(
-                stream,
-                request.Receipt.FileName,
-                request.Receipt.ContentType);
-
             if (expense.Receipt == null)
             {
                 expense.Receipt = new Receipt();
             }
 
-            expense.Receipt.FileName = fileName;
-            expense.Receipt.ContentType = request.Receipt.ContentType;
-            expense.Receipt.FileSize = request.Receipt.Length;
+            expense.Receipt.FileName = request.ReceiptPath;
             expense.Receipt.UploadDate = DateTime.UtcNow;
         }
 

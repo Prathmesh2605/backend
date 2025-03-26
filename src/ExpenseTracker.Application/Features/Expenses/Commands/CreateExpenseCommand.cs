@@ -19,22 +19,26 @@ public record CreateExpenseCommand(
     string? Notes,
     bool IsRecurring,
     string? RecurrencePattern,
-    IFormFile? Receipt) : IRequest<Result<ExpenseDto>>;
+    string? ReceiptPath) : IRequest<Result<ExpenseDto>>;
 
 public class CreateExpenseCommandHandler : IRequestHandler<CreateExpenseCommand, Result<ExpenseDto>>
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
     private readonly IFileStorageService _fileStorage;
+    private readonly ICurrentUserService _currentUserService;
 
     public CreateExpenseCommandHandler(
         IUnitOfWork unitOfWork,
         IMapper mapper,
-        IFileStorageService fileStorage)
+        IFileStorageService fileStorage,
+        ICurrentUserService currentUserService
+        )
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
         _fileStorage = fileStorage;
+        _currentUserService = currentUserService;
     }
 
     public async Task<Result<ExpenseDto>> Handle(CreateExpenseCommand request, CancellationToken cancellationToken)
@@ -59,23 +63,18 @@ public class CreateExpenseCommandHandler : IRequestHandler<CreateExpenseCommand,
             CategoryId = request.CategoryId,
             Notes = request.Notes,
             IsRecurring = request.IsRecurring,
-            RecurrencePattern = request.RecurrencePattern
+            RecurrencePattern = request.RecurrencePattern,
+            UserId = Guid.Parse(_currentUserService.UserId.ToString())
         };
 
         // Handle receipt upload if present
-        if (request.Receipt != null)
+        if (request.ReceiptPath != null)
         {
-            using var stream = request.Receipt.OpenReadStream();
-            var fileName = await _fileStorage.SaveFileAsync(
-                stream,
-                request.Receipt.FileName,
-                request.Receipt.ContentType);
-
             expense.Receipt = new Receipt
             {
-                FileName = fileName,
-                ContentType = request.Receipt.ContentType,
-                FileSize = request.Receipt.Length,
+                FileName = request.ReceiptPath,
+                ContentType = "application/octet-stream",
+                FileSize = 0,
                 UploadDate = DateTime.UtcNow
             };
         }
