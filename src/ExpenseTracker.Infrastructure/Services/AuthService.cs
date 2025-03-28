@@ -37,7 +37,7 @@ public class AuthService : IAuthService
         // Check if user exists
         var existingUser = await _unitOfWork.Repository<User>()
             .Query()
-            .FirstOrDefaultAsync(u => u.Email == request.Email || u.Username == request.Username);
+            .FirstOrDefaultAsync(u => u.Email == request.Email);
 
         if (existingUser != null)
         {
@@ -51,7 +51,7 @@ public class AuthService : IAuthService
         var user = new User
         {
             Email = request.Email,
-            Username = request.Username,
+            //Username = request.Username,
             FirstName = request.FirstName,
             LastName = request.LastName,
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),

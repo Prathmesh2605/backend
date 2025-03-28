@@ -10,7 +10,6 @@ namespace ExpenseTracker.Application.Features.Auth.Commands;
 
 public record RegisterCommand(
     string Email,
-    string Username,
     string Password,
     string FirstName,
     string LastName) : IRequest<Result<AuthResponse>>;
@@ -35,7 +34,7 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, Result<Au
     {
         // Check if user already exists
         var existingUser = await _unitOfWork.Repository<User>()
-            .FirstOrDefaultAsync(u => u.Email == request.Email || u.Username == request.Username);
+            .FirstOrDefaultAsync(u => u.Email == request.Email);
 
         if (existingUser != null)
         {
@@ -48,7 +47,6 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, Result<Au
         // Create registration request
         var registerRequest = new RegisterRequest(
             request.Email,
-            request.Username,
             request.Password,
             request.FirstName,
             request.LastName);

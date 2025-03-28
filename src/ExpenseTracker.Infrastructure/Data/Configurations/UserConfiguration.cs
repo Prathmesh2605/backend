@@ -14,9 +14,9 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .IsRequired()
             .HasMaxLength(255);
 
-        builder.Property(u => u.Username)
-            .IsRequired()
-            .HasMaxLength(50);
+        //builder.Property(u => u.Username)
+        //    .IsRequired()
+        //    .HasMaxLength(50);
 
         builder.Property(u => u.PasswordHash)
             .IsRequired();
@@ -37,8 +37,8 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.HasIndex(u => u.Email)
             .IsUnique();
 
-        builder.HasIndex(u => u.Username)
-            .IsUnique();
+        //builder.HasIndex(u => u.Username)
+        //    .IsUnique();
 
         // Relationships
         builder.HasMany(u => u.Expenses)

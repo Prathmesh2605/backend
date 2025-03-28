@@ -66,6 +66,16 @@ public class GetExpenseSummaryQueryHandler : IRequestHandler<GetExpenseSummaryQu
             .OrderByDescending(c => c.TotalAmount)
             .ToList();
 
+        var monthlyTotals = expenses
+            .Where(e => e.Date.Date >= request.StartDate.Value.Date && e.Date.Date <= request.EndDate.Value.Date)
+            .GroupBy(e => new { e.Date.Month, e.Date.Year })
+            .Select(g => new MonthlyTotal
+            {
+                Month = g.Key.Month,
+                Year = g.Key.Year,
+                Amount = g.Sum(e => e.Amount)
+            }).ToList();
+
         var summary = new ExpenseSummaryDto
         {
             TotalAmount = totalAmount,
@@ -73,6 +83,7 @@ public class GetExpenseSummaryQueryHandler : IRequestHandler<GetExpenseSummaryQu
             AverageAmount = totalAmount / expenses.Count,
             MaxAmount = expenses.Max(e => e.Amount),
             MinAmount = expenses.Min(e => e.Amount),
+            MonthlyTotals = monthlyTotals,
             CategorySummaries = categorySummaries
         };
 

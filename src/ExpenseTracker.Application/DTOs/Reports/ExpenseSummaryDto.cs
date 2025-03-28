@@ -7,5 +7,6 @@ public class ExpenseSummaryDto
     public decimal AverageAmount { get; set; }
     public decimal MaxAmount { get; set; }
     public decimal MinAmount { get; set; }
+    public List<MonthlyTotal> MonthlyTotals { get; set; }
     public List<CategorySummaryDto> CategorySummaries { get; set; } = new();
 }

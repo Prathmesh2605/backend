@@ -12,12 +12,12 @@ public class RegisterRequestValidator : AbstractValidator<RegisterRequest>
             .EmailAddress()
             .MaximumLength(255);
 
-        RuleFor(x => x.Username)
-            .NotEmpty()
-            .MinimumLength(3)
-            .MaximumLength(50)
-            .Matches("^[a-zA-Z0-9._-]+$")
-            .WithMessage("Username can only contain letters, numbers, dots, underscores, and hyphens");
+        //RuleFor(x => x.Username)
+        //    .NotEmpty()
+        //    .MinimumLength(3)
+        //    .MaximumLength(50)
+        //    .Matches("^[a-zA-Z0-9._-]+$")
+        //    .WithMessage("Username can only contain letters, numbers, dots, underscores, and hyphens");
 
         RuleFor(x => x.Password)
             .NotEmpty()
