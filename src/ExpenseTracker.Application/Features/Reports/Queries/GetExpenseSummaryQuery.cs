@@ -1,6 +1,7 @@
 using ExpenseTracker.Application.Common.Models;
 using ExpenseTracker.Application.DTOs.Reports;
 using ExpenseTracker.Core.Entities;
+using ExpenseTracker.Core.Enums;
 using ExpenseTracker.Core.Interfaces;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -52,22 +53,33 @@ public class GetExpenseSummaryQueryHandler : IRequestHandler<GetExpenseSummaryQu
             return Result<ExpenseSummaryDto>.Success(new ExpenseSummaryDto());
         }
 
-        var totalAmount = expenses.Sum(e => e.Amount);
-        var categorySummaries = expenses
-            .GroupBy(e => new { e.CategoryId, e.Category!.Name })
+        var expenseTransactions = expenses.Where(x => x.Type == ExpenseType.Expense).ToList();
+        var incomeTransactions = expenses.Where(x => x.Type == ExpenseType.Income).ToList();
+
+        // Calculate expense totals with null check to avoid divide by zero
+        var totalExpenseAmount = expenseTransactions.Sum(e => e.Amount);
+        var averageExpenseAmount = expenseTransactions.Any() ? totalExpenseAmount / expenseTransactions.Count : 0;
+
+        // Calculate income totals with null check to avoid divide by zero
+        var totalIncomeAmount = incomeTransactions.Sum(e => e.Amount);
+        var averageIncomeAmount = incomeTransactions.Any() ? totalIncomeAmount / incomeTransactions.Count : 0;
+
+        // Calculate category summaries for expenses only
+        var categorySummaries = expenseTransactions
+            .GroupBy(e => new { e.CategoryId, CategoryName = e.Category?.Name ?? "Uncategorized" })
             .Select(g => new CategorySummaryDto
             {
                 CategoryId = Guid.Parse(g.Key.CategoryId.ToString()),
-                CategoryName = g.Key.Name,
+                CategoryName = g.Key.CategoryName,
                 TotalAmount = g.Sum(e => e.Amount),
-                Count = expenses.Count(e => e.CategoryId == Guid.Parse(g.Key.CategoryId.ToString())),
-                Percentage = (g.Sum(e => e.Amount) / totalAmount) * 100
+                Count = g.Count(),
+                Percentage = totalExpenseAmount > 0 ? (g.Sum(e => e.Amount) / totalExpenseAmount) * 100 : 0
             })
             .OrderByDescending(c => c.TotalAmount)
             .ToList();
 
-        var monthlyTotals = expenses
-            .Where(e => e.Date.Date >= request.StartDate.Value.Date && e.Date.Date <= request.EndDate.Value.Date)
+        // Calculate monthly totals for expenses only
+        var monthlyTotals = expenseTransactions
             .GroupBy(e => new { e.Date.Month, e.Date.Year })
             .Select(g => new MonthlyTotal
             {
@@ -78,11 +90,13 @@ public class GetExpenseSummaryQueryHandler : IRequestHandler<GetExpenseSummaryQu
 
         var summary = new ExpenseSummaryDto
         {
-            TotalAmount = totalAmount,
+            TotalExpenseAmount = totalExpenseAmount,
+            TotalIncomeAmount = totalIncomeAmount,
             TotalCount = expenses.Count,
-            AverageAmount = totalAmount / expenses.Count,
-            MaxAmount = expenses.Max(e => e.Amount),
-            MinAmount = expenses.Min(e => e.Amount),
+            AverageExpenseAmount = averageExpenseAmount,
+            AverageIncomeAmount = averageIncomeAmount,
+            MaxAmount = expenses.Any() ? expenses.Max(e => e.Amount) : 0,
+            MinAmount = expenses.Any() ? expenses.Min(e => e.Amount) : 0,
             MonthlyTotals = monthlyTotals,
             CategorySummaries = categorySummaries
         };

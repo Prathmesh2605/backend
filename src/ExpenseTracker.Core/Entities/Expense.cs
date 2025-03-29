@@ -9,7 +9,7 @@ public class Expense : AuditableEntity
     public string Description { get; set; } = string.Empty;
     public DateTime Date { get; set; }
     public ExpenseType Type { get; set; }
-    public string Currency { get; set; } = "USD";
+    public string Currency { get; set; } = "INR";
     public Guid CategoryId { get; set; }
     public Guid UserId { get; set; }
     public string? Notes { get; set; }

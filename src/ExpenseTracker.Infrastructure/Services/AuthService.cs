@@ -56,7 +56,7 @@ public class AuthService : IAuthService
             FirstName = request.FirstName,
             LastName = request.LastName,
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
-            PreferredCurrency = "USD", // Default currency
+            PreferredCurrency = "INR", // Default currency
             EmailNotificationsEnabled = true // Default setting
         };
 
