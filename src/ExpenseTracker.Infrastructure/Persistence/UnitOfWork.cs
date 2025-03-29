@@ -1,5 +1,6 @@
 using ExpenseTracker.Core.Common;
 using ExpenseTracker.Core.Interfaces;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 
 namespace ExpenseTracker.Infrastructure.Data;
@@ -73,6 +74,11 @@ public class UnitOfWork : IUnitOfWork
             await _currentTransaction.DisposeAsync();
             _currentTransaction = null;
         }
+    }
+
+    public async Task ExecuteStoredProcedureAsync(string procedureName, params object[] parameters)
+    {
+        await _context.Database.ExecuteSqlRawAsync(procedureName, parameters);
     }
 
     public void Dispose()

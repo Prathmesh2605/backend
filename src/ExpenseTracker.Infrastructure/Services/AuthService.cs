@@ -10,6 +10,7 @@ using ExpenseTracker.Application.Interfaces;
 using ExpenseTracker.Core.Entities;
 using ExpenseTracker.Core.Interfaces;
 using ExpenseTracker.Infrastructure.Authentication;
+using ExpenseTracker.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -61,6 +62,11 @@ public class AuthService : IAuthService
 
         await _unitOfWork.Repository<User>().AddAsync(user);
         await _unitOfWork.SaveChangesAsync();
+
+        // Create default categories for the user
+        await _unitOfWork.ExecuteStoredProcedureAsync(
+            "EXEC [dbo].[CreateDefaultCategoriesForUser] @UserId",
+            new Microsoft.Data.SqlClient.SqlParameter("@UserId", user.Id));
 
         // Generate tokens
         var token = GenerateJwtToken(_mapper.Map<UserDto>(user));

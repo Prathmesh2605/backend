@@ -52,4 +52,12 @@ public class ApplicationDbContext : DbContext
 
         return base.SaveChangesAsync(cancellationToken);
     }
+
+    public async Task CreateDefaultCategoriesForUserAsync(Guid userId)
+    {
+        // Execute the stored procedure to create default categories for the user
+        await Database.ExecuteSqlRawAsync(
+            "EXEC [dbo].[CreateDefaultCategoriesForUser] @UserId",
+            new Microsoft.Data.SqlClient.SqlParameter("@UserId", userId));
+    }
 }
