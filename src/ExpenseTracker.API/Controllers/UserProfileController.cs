@@ -23,7 +23,7 @@ public class UserProfileController : ApiControllerBase
     [ProducesResponseType(typeof(UserProfileDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(string), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> UpdateProfile([FromForm] UpdateUserProfileCommand command)
+    public async Task<IActionResult> UpdateProfile([FromQuery] UpdateUserProfileCommand command)
     {
         var result = await Mediator.Send(command);
         return result.Succeeded ? Ok(result.Data) : BadRequest(result.Error);

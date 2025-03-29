@@ -17,5 +17,7 @@ public class MappingProfile : Profile
                 opt => opt.MapFrom(s => s.Category.Name));
 
         CreateMap<Receipt, ReceiptDto>();
+
+        CreateMap<User,UserProfileDto >();
     }
 }
