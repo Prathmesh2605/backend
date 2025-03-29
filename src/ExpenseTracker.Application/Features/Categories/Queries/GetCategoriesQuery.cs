@@ -15,27 +15,39 @@ public class GetCategoriesQueryHandler : IRequestHandler<GetCategoriesQuery, Res
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
+    private readonly ICurrentUserService _currentUserService;
 
-    public GetCategoriesQueryHandler(IUnitOfWork unitOfWork, IMapper mapper)
+    public GetCategoriesQueryHandler(IUnitOfWork unitOfWork, IMapper mapper, ICurrentUserService currentUserService)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
+        _currentUserService = currentUserService;
     }
 
     public async Task<Result<List<CategoryDto>>> Handle(GetCategoriesQuery request, CancellationToken cancellationToken)
     {
-        var query = _unitOfWork.Repository<Category>().GetAll();
-
-        if (request.Type.HasValue)
+        List<CategoryDto> categoryDtos= new List<CategoryDto>();
+        try
         {
-            query = query.Where(c => c.Type == request.Type.Value);
+            var query = _unitOfWork.Repository<Category>().GetAll();
+
+            if (request.Type.HasValue)
+            {
+                query = query.Where(c => c.Type == request.Type.Value);
+            }
+
+            var categories = await query
+                .Where(c => c.UserId == Guid.Parse(_currentUserService.UserId.ToString()))
+                .OrderBy(c => c.Name)
+                .ToListAsync(cancellationToken);
+
+            categoryDtos = _mapper.Map<List<CategoryDto>>(categories);
+            return Result<List<CategoryDto>>.Success(categoryDtos);
+        }
+        catch (Exception ex)
+        {
+            return Result<List<CategoryDto>>.Failure(ex.Message);
         }
 
-        var categories = await query
-            .OrderBy(c => c.Name)
-            .ToListAsync(cancellationToken);
-
-        var categoryDtos = _mapper.Map<List<CategoryDto>>(categories);
-        return Result<List<CategoryDto>>.Success(categoryDtos);
     }
 }
